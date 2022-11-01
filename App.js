@@ -1,13 +1,67 @@
 import { StatusBar } from "expo-status-bar";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
+import { theme } from "./colors";
 
 export default function App() {
+  const [working, setWorking] = useState(true);
+  const [text, setText] = useState("");
+  const [toDos, setToDos] = useState({});
+  const travel = () => {
+    setWorking(false);
+  };
+  const work = () => {
+    setWorking(true);
+  };
+  const onChangeText = (payload) => {
+    setText(payload);
+  };
+  const addtoDo = () => {
+    if (text == "") return;
+    const newToDos = Object.assign({}, toDos, {
+      [Date.now()]: { text, work: working },
+    });
+    setToDos(newToDos);
+    setText("");
+  };
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.btnText}>Work</Text>
-        <Text style={styles.btnText}>Travel</Text>
+        <TouchableOpacity onPress={work}>
+          <Text
+            style={{
+              ...styles.btnText,
+              color: working ? theme.white : theme.gray,
+            }}
+          >
+            Work
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={travel}>
+          <Text
+            style={{
+              ...styles.btnText,
+              color: working ? theme.gray : theme.white,
+            }}
+          >
+            Travel
+          </Text>
+        </TouchableOpacity>
       </View>
+      <TextInput
+        onSubmitEditing={addtoDo}
+        onChangeText={onChangeText}
+        returnKeyType="done"
+        value={text}
+        style={styles.input}
+        placeholder={working ? "Add a To Do" : "Where do you want to go"}
+      />
       <StatusBar style="auto" />
     </View>
   );
@@ -16,7 +70,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: theme.bg,
     paddingHorizontal: 20,
   },
   header: {
@@ -25,8 +79,15 @@ const styles = StyleSheet.create({
     marginTop: 100,
   },
   btnText: {
-    color: "white",
-    fontSize: 44,
+    fontSize: 38,
     fontWeight: "600",
+  },
+  input: {
+    backgroundColor: "white",
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    marginTop: 20,
+    fontSize: 18,
   },
 });

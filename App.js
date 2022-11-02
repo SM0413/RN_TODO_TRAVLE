@@ -11,9 +11,11 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { theme } from "./colors";
+import { Fontisto } from "@expo/vector-icons";
 
 export default function App() {
   const [working, setWorking] = useState(true);
+  const [isFinish, setIsFinish] = useState(false);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
   const travel = () => {
@@ -28,10 +30,7 @@ export default function App() {
   const STORAGE_KEY = "@toDos";
   const addtoDo = async () => {
     if (text == "") return;
-    // const newToDos = Object.assign({}, toDos, {
-    //   [Date.now()]: { text, work: working },
-    // });
-    const newToDos = { ...toDos, [Date.now()]: { text, working } };
+    const newToDos = { ...toDos, [Date.now()]: { text, working, isFinish } };
     setToDos(newToDos);
     await saveToDos(newToDos);
     setText("");
@@ -48,6 +47,7 @@ export default function App() {
       { text: "Cancel" },
       {
         text: "I'm Sure",
+        style: "destructive",
         onPress: async () => {
           const newToDos = { ...toDos };
           delete newToDos[key];
@@ -61,6 +61,13 @@ export default function App() {
   useEffect(() => {
     loadToDos();
   }, []);
+  const finishFn = async ({ isEnd, key }) => {
+    setIsFinish(isEnd);
+    const newToDos = { ...toDos };
+    newToDos[key].isFinish = isEnd;
+    setToDos(newToDos);
+    await saveToDos(newToDos);
+  };
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -98,14 +105,32 @@ export default function App() {
           toDos[key].working === working ? (
             <View style={styles.toDo} key={key}>
               <Text style={styles.toDoText}>{toDos[key].text}</Text>
-              <TouchableOpacity onPress={() => deleteToDo(key)}>
-                <Text>❌</Text>
-              </TouchableOpacity>
+              <View style={styles.toDoIcons}>
+                {toDos[key].isFinish ? (
+                  <TouchableOpacity
+                    onPress={() => finishFn({ isEnd: false, key })}
+                  >
+                    <Fontisto name="checkbox-active" size={24} color="teal" />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => finishFn({ isEnd: true, key })}
+                  >
+                    <Fontisto name="checkbox-passive" size={24} color="white" />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={styles.deleteIcon}
+                  onPress={() => deleteToDo(key)}
+                >
+                  <Fontisto name="trash" size={24} color="tomato" />
+                </TouchableOpacity>
+              </View>
             </View>
           ) : null
         )}
       </ScrollView>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </View>
   );
 }
@@ -147,5 +172,11 @@ const styles = StyleSheet.create({
     color: theme.white,
     fontSize: 16,
     fontWeight: "500",
+  },
+  toDoIcons: {
+    flexDirection: "row",
+  },
+  deleteIcon: {
+    marginLeft: 10,
   },
 });
